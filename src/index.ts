@@ -1,28 +1,52 @@
-import * as PIXI from 'pixi.js';
+import { Application, Sprite, Loader, TickerCallback, UPDATE_PRIORITY,  } from 'pixi.js';
+import { Entity } from './entities/entity';
+import { Rock } from './entities/rock';
+import { Ship } from './entities/ship';
 
-const app = new PIXI.Application();
+//https://pixijs.download/v5.3.10/docs/PIXI.Application.html
+const app = new Application({
+    antialias: true,    // default: false
+    transparent: false, // default: false
+    resolution: 1,       // default: 1
+    resizeTo: window,
+  });
 
 document.body.appendChild(app.view);
 
-PIXI.Loader.shared.add('bunny', 'bunny.png').load((loader, resources) => {
-    
-    // This creates a texture from a 'bunny.png' image.
-    const bunny = new PIXI.Sprite(resources.bunny.texture);
- 
-    // Setup the position of the bunny
-    bunny.x = app.renderer.width / 2;
-    bunny.y = app.renderer.height / 2;
- 
-    // Rotate around the center
-    bunny.anchor.x = 0.5;
-    bunny.anchor.y = 0.5;
- 
-    // Add the bunny to the scene we are building.
-    app.stage.addChild(bunny);
- 
-    // Listen for frame updates
-    app.ticker.add(() => {
-         // each frame we spin the bunny around a bit
-        bunny.rotation += 0.01;
-    });
+let entities: Entity[] = [];
+
+const assets = [
+  { key: 'ship', value: 'public/green box.png' },
+  { key: 'rock', value: 'public/green box.png' }
+];
+
+let draw: TickerCallback<any> = (delta) => {
+  entities.forEach(entity => {
+    entity.draw(delta);
+  });
+}
+
+let gameLoop: TickerCallback<any> = (delta) => {
+  entities.forEach(entity=>{
+    entity.update(delta);
+  });
+}
+
+let loader = Loader.shared
+assets.forEach(asset => {
+  loader = loader.add(asset.key, asset.value);
+});
+loader.load((loader, resources) => {
+  let ship = new Ship(new Sprite(resources.ship.texture));
+  entities.push(ship);
+
+  for(let index = 0; index < 10; index++) {
+    let rock = new Rock(new Sprite(resources.rock.texture));
+    entities.push(rock);
+  }
+
+  app.stage.addChild(...entities.map(entity => entity.getSprite()));
+
+  app.ticker.add(draw, null, UPDATE_PRIORITY.HIGH);
+  app.ticker.add(gameLoop, null, UPDATE_PRIORITY.NORMAL);
 });

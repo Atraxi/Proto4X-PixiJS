@@ -13,13 +13,19 @@ module.exports = {
         ],
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: ['.tsx', '.ts', '.js', '.css'],
     },
     devServer: {
     },
     devtool: 'inline-source-map',
     plugins: [
         new HTMLWebpackPlugin({
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                //{ from: "src", to: "dest" },
+                { from: "assets", to: "public" },
+            ],
         })
     ]
 }
