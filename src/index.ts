@@ -1,4 +1,4 @@
-import { Application, Sprite, Loader, TickerCallback, UPDATE_PRIORITY,  } from 'pixi.js';
+import { Application, Sprite, Loader, TickerCallback, UPDATE_PRIORITY, LoaderResource,  } from 'pixi.js';
 import { Entity } from './entities/entity';
 import { Rock } from './entities/rock';
 import { Ship } from './entities/ship';
@@ -15,10 +15,10 @@ document.body.appendChild(app.view);
 
 let entities: Entity[] = [];
 
-const assets = [
-  { key: 'ship', value: 'public/green box.png' },
-  { key: 'rock', value: 'public/green box.png' }
-];
+const assets = {
+  ['ship']: 'public/green box.png',
+  ['rock']: 'public/green box.png',
+};
 
 let draw: TickerCallback<any> = (delta) => {
   entities.forEach(entity => {
@@ -32,16 +32,20 @@ let gameLoop: TickerCallback<any> = (delta) => {
   });
 }
 
-let loader = Loader.shared
-assets.forEach(asset => {
-  loader = loader.add(asset.key, asset.value);
+let loader = Loader.shared;
+Object.entries(assets).forEach(asset => {
+  loader = loader.add(asset[0], asset[1]);
 });
-loader.load((loader, resources) => {
-  let ship = new Ship(new Sprite(resources.ship.texture));
+
+loader.load((_, resources) => {
+  const typedGuardedResources = resources as {
+    [key in keyof typeof assets]: LoaderResource;
+  };
+  let ship = new Ship(new Sprite(typedGuardedResources.ship.texture));
   entities.push(ship);
 
   for(let index = 0; index < 10; index++) {
-    let rock = new Rock(new Sprite(resources.rock.texture));
+    let rock = new Rock(new Sprite(typedGuardedResources.rock.texture));
     entities.push(rock);
   }
 
