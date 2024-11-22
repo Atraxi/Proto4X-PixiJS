@@ -2,30 +2,35 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-    mode: 'development',
-    module: {
-        rules: [
-            {
-            test: /\.tsx?$/,
-            use: 'ts-loader',
-            exclude: /node_modules/,
-            },
-        ],
+  mode: 'development',
+  module: {
+    rules: [{
+      test: /\.ts$/,
+      use: 'ts-loader',
+      exclude: /node_modules/,
     },
-    resolve: {
-        extensions: ['.tsx', '.ts', '.js', '.css'],
+    {
+      test: /\.scss$/,
+      use: ['style-loader', 'css-loader', 'sass-loader'],
     },
-    devServer: {
-    },
-    devtool: 'inline-source-map',
-    plugins: [
-        new HTMLWebpackPlugin({
-        }),
-        new CopyWebpackPlugin({
-            patterns: [
-                //{ from: "src", to: "dest" },
-                { from: "assets", to: "public" },
-            ],
-        })
-    ]
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.js', '.scss'],
+  },
+  devServer: {
+  },
+  devtool: 'inline-source-map',
+  plugins: [
+    new HTMLWebpackPlugin({
+      hash: true,
+      minify: false
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        //{ from: "src", to: "dest" },
+        { from: "assets", to: "public" },
+      ],
+    })
+  ]
 }

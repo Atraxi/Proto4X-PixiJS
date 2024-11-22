@@ -14,7 +14,7 @@ module.exports = {
     ],
     },
     resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.ts', '.scss'],
     },
     optimization: {
         minimizer: [new UglifyJSPlugin({
@@ -31,10 +31,8 @@ module.exports = {
             to: 'assets'
         }]),
         new HTMLWebpackPlugin({
-            template: 'build/index.html',
-            filename: 'index.html',
             hash: true,
-            minify: false
+            minify: true
         })
     ]
 }

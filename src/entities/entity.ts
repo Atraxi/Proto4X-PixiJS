@@ -1,19 +1,33 @@
-import { Sprite } from "pixi.js";
+import { Sprite } from "pixi.js"
+import { Acceleration, Position, Velocity } from "../types/position"
 
 export abstract class Entity {
-	private _sprite: Sprite;
-	//private _position: Position; //TODO do I want/need this? It is build into the sprite anyway
+	public sprite: Sprite
+	public readonly position: Position
+	public readonly velocity: Velocity
+	public readonly acceleration: Acceleration
 	
-	constructor(sprite: Sprite) {
-		this._sprite = sprite;
-		//this._position = position;
+	constructor(sprite: Sprite, position: Position) {
+		this.sprite = sprite
+		this.position = position
+		this.velocity = new Velocity(0, 0)
+		this.acceleration = new Acceleration(0, 0)
 	}
 
-	public getSprite() {
-		return this._sprite;
+	baseUpdate(frameTimeAdjustment: number) {
+		this.velocity.accelerate(this.acceleration, frameTimeAdjustment)
+		this.position.move(this.velocity, frameTimeAdjustment)
+		this.update(frameTimeAdjustment)
 	}
 
-	abstract update(frameTime: number): void;
+	/**
+	 * 
+	 * @param frameTimeAdjustment Fraction of the ideal frame time used; scale game logic using this for frame-rate independence.
+	 */
+	abstract update(frameTimeAdjustment: number): void
 
-	abstract draw(frameTime: number): void;
+	draw(): void {
+		this.sprite.x = this.position.x
+		this.sprite.y = this.position.y
+	}
 }

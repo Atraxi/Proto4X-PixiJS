@@ -1,9 +1,15 @@
 {
 	"compilerOptions": {
-		"target": "ES5",
+		"target": "es2015",
 		"noImplicitAny": true,
 		"strict": true,
 		"noImplicitOverride": true,
 		"noImplicitThis": true,
+		"alwaysStrict": true,
+		"forceConsistentCasingInFileNames": true,
+		"incremental": true,
+		"strictFunctionTypes": true,
+		"module": "EsNext",
+		"moduleResolution": "node"
 	}
 }
