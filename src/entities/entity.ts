@@ -1,33 +1,19 @@
-import { Sprite } from "pixi.js"
-import { Acceleration, Position, Velocity } from "../types/position"
+import { Movable, Movables, Vector2 } from "../components/movable"
+import { Positioned } from "../utils/quadtree"
+import { Drawable, Drawables } from "../components/drawable"
 
-export abstract class Entity {
-	public sprite: Sprite
-	public readonly position: Position
-	public readonly velocity: Velocity
-	public readonly acceleration: Acceleration
+export abstract class Entity implements Positioned {
+	//These exist purely to index into the quadtree map storage, then ID is used to index into the various components
+	//No other data should be stored on an Entity
+	public readonly id: number
+	position: Vector2
 	
-	constructor(sprite: Sprite, position: Position) {
-		this.sprite = sprite
-		this.position = position
-		this.velocity = new Velocity(0, 0)
-		this.acceleration = new Acceleration(0, 0)
-	}
-
-	baseUpdate(frameTimeAdjustment: number) {
-		this.velocity.accelerate(this.acceleration, frameTimeAdjustment)
-		this.position.move(this.velocity, frameTimeAdjustment)
-		this.update(frameTimeAdjustment)
-	}
-
-	/**
-	 * 
-	 * @param frameTimeAdjustment Fraction of the ideal frame time used; scale game logic using this for frame-rate independence.
-	 */
-	abstract update(frameTimeAdjustment: number): void
-
-	draw(): void {
-		this.sprite.x = this.position.x
-		this.sprite.y = this.position.y
+	constructor(drawable: Drawable, movable: Movable) {
+		this.id = Math.floor(Math.random() * 1000000)
+		this.position = movable.position
+		
+		Movables.add(this.id, movable)
+		Drawables.add(this.id, drawable)
 	}
 }
+

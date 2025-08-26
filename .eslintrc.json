@@ -31,6 +31,10 @@
         "semi": [
             "error",
             "always"
+        ],
+        "noImplicitAny": [
+            "error",
+            "always"
         ]
     }
 }

@@ -1,59 +1,72 @@
-import { Application, Sprite, Loader, TickerCallback, UPDATE_PRIORITY, LoaderResource } from 'pixi.js'
-import { Entity } from './entities/entity'
+import { Application, Assets, ContainerChild, Graphics, Sprite, UPDATE_PRIORITY, type IRenderLayer } from 'pixi.js'
 import { Rock } from './entities/rock'
 import { Ship } from './entities/ship'
-import { Position } from './types/position'
+import { Movable, Movables, Vector2 } from './components/movable'
 import { keyEventManager } from './utils/key-listener'
+import { GameLayer } from './world/game-layer'
 
-//https://pixijs.download/v5.3.10/docs/PIXI.Application.html
-const app = new Application({
-    antialias: true,
-    resolution: 1,
+import './styles/index.css'
+import { debugUtils } from './utils/debug'
+import { Drawable, Drawables } from './components/drawable'
+
+let app = new Application();
+
+(async () => {
+  await app.init({
+    // antialias: true,
+    // resolution: 1,
     resizeTo: window //why does it size itself wrong? and need to fix <body> margin issues
   })
 
-document.body.appendChild(app.view)
+  document.body.appendChild(app.canvas)
 
-let entities: Entity[] = []
+  const assets = [
+    { alias: 'ship', src: 'public/green box arrow.png' },
+    { alias: 'rock', src: 'public/green box.png' },
+  ]
 
-const assets = {
-  ['ship']: 'public/green box.png',
-  ['rock']: 'public/green box.png',
-}
+  await Assets.load(assets)
 
-let draw: TickerCallback<any> = (delta) => {
-  entities.forEach(entity => {
-    entity.draw()
-  })
-}
+  const graphics = new Graphics();
+  app.stage.addChild(graphics);
 
-let gameLoop: TickerCallback<any> = (delta) => {
-  entities.forEach(entity=>{
-    entity.baseUpdate(delta)
-  })
-}
+  let world = new GameLayer(100, 100, app.screen.width-200, app.screen.height-200)
 
-let loader = Loader.shared
-Object.entries(assets).forEach(asset => {
-  loader = loader.add(asset[0], asset[1])
-})
-
-loader.load((_, resources) => {
-  const typedGuardedResources = resources as {
-    [key in keyof typeof assets]: LoaderResource
-  }
-  let ship = new Ship(new Sprite(typedGuardedResources.ship.texture), new Position(5, 0))
-  entities.push(ship)
+  let ship = new Ship(new Drawable(Sprite.from('ship')), new Movable({position: new Vector2(400, 400)}, world), 0.5)
+  world.entities.add(ship)
 
   for(let index = 0; index < 10; index++) {
-    let rock = new Rock(new Sprite(typedGuardedResources.rock.texture), new Position(index, index))
-    entities.push(rock)
+    let rock = new Rock(new Drawable(Sprite.from('rock')), new Movable({position: new Vector2(500 + index*50, 500 + index*20)}, world))
+    world.entities.add(rock)
   }
-
-  app.stage.addChild(...entities.map(entity => entity.sprite))
-
-  app.ticker.add(draw, null, UPDATE_PRIORITY.INTERACTION)
-  app.ticker.add(gameLoop, null, UPDATE_PRIORITY.NORMAL)
   
+  Drawables.forEach(drawable => {
+    app.stage.addChild(drawable.value.sprite)
+  })
+
+  app.ticker.add((delta) => {
+    graphics.clear()
+    world.draw(graphics)
+    debugUtils.renderDebugInfoIfEnabled(delta)
+  }, null, UPDATE_PRIORITY.LOW)
+
+  app.ticker.add((delta) => {
+    Movables.getAll().forEach(movable => movable.update(delta.deltaTime))
+  }, null, UPDATE_PRIORITY.NORMAL)
+
+  app.ticker.add((delta) => {
+    keyEventManager.update()
+  }, null, UPDATE_PRIORITY.INTERACTION)
+
   keyEventManager.setContext("gameplay")
-})
+})();
+
+let Game = {
+  addToStage(entity: ContainerChild | IRenderLayer) {
+    app.stage.addChild(entity);
+  },
+  multiplyGameSpeed(multiplier: number) {
+    app.ticker.speed *= multiplier;
+  }
+}
+export { Game }

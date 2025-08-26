@@ -1,19 +1,38 @@
-import { Sprite } from "pixi.js";
+import { Matrix, Sprite } from "pixi.js";
 import { Entity } from "./entity";
-import { Acceleration, Position } from "../types/position";
+import { Movable, Vector2 } from "../components/movable";
 import { keyEventManager } from "../utils/key-listener";
+import { Drawable } from "../components/drawable";
 
 export class Ship extends Entity {
-	constructor(sprite: Sprite, position: Position) {
-		super(sprite, position);
+	//TODO purge me?
+	readonly thrust: number
+	constructor(drawable: Drawable, movable: Movable, thrust: number) {
+		super(drawable, movable);
 
-		keyEventManager.subscribe("a", () => this.acceleration.add(-1, 0), () => this.acceleration.add(1, 0))
-		keyEventManager.subscribe("d", () => this.acceleration.add(1, 0), () => this.acceleration.add(-1, 0))
-		keyEventManager.subscribe("w", () => this.acceleration.add(0, -1), () => this.acceleration.add(0, 1))
-		keyEventManager.subscribe("s", () => this.acceleration.add(0, 1), () => this.acceleration.add(0, -1))
-	}
-
-	update(frameTime: number): void {
+		this.thrust = thrust
 		
+		//TODO: Strafing? Acceleration is directionless now, so I'll need some way to provide an optional directional thrust
+		// keyEventManager.subscribe("a", () => movable.accelerate(thrust), () => movable.accelerate(-thrust))
+		// keyEventManager.subscribe("d", () => movable.accelerate(thrust), () => movable.accelerate(-thrust))
+
+		keyEventManager.subscribe(keyEventManager.getKeyCombosForSimpleCommonActions("up"),
+			() => movable.accelerateRelativeToRotation(new Vector2(0, -thrust)),
+			() => movable.accelerateRelativeToRotation(new Vector2(0, 0)),
+			"gameplay",
+			true)
+		keyEventManager.subscribe(keyEventManager.getKeyCombosForSimpleCommonActions("down"),
+			() => movable.accelerateRelativeToRotation(new Vector2(0, thrust)),
+			() => movable.accelerateRelativeToRotation(new Vector2(0, 0)),
+			"gameplay",
+			true)
+
+		let angularAcceleration = Math.PI * 2 / 5000
+		keyEventManager.subscribe(keyEventManager.getKeyCombosForSimpleCommonActions("left"),
+			() => movable.rotate(-angularAcceleration),
+			() => movable.rotate(angularAcceleration))
+		keyEventManager.subscribe(keyEventManager.getKeyCombosForSimpleCommonActions("right"),
+			() => movable.rotate(angularAcceleration),
+			() => movable.rotate(-angularAcceleration))
 	}
 }
